@@ -10,6 +10,7 @@ tap phinze/homebrew-cask || true
 tap homebrew/binary || true
 tap homebrew/dupes || true
 tap josegonzalez/php || true
+tap sanemat/font
 # パッケージのインストール
 install zsh || brew upgrade zsh || true
 install git
@@ -29,6 +30,7 @@ install jenkins
 install php55
 install php55-pcntl
 install composer
+install ricty --powerline --vim-powerline ricty
 
 # homebrew-caskのインストール
 install brew-cask
