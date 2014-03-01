@@ -31,6 +31,7 @@ install php55
 install php55-pcntl
 install composer
 install ricty --powerline --vim-powerline ricty
+install macvim --override-system-vim --with-lua --with-luajit --HEAD
 
 # homebrew-caskのインストール
 install brew-cask
@@ -41,7 +42,6 @@ cask install kobito
 cask install virtualbox
 cask install vagrant
 cask install skype
-cask install macvim
 cask install cyberduck
 cask install deluge
 cask install unity3d
