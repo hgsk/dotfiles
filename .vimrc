@@ -1,31 +1,73 @@
-" editor
+"
+"    ██░ ██   ▄████   ██████  ██ ▄█▀
+"   ▓██░ ██▒ ██▒ ▀█▒▒██    ▒  ██▄█▒ 
+"   ▒██▀▀██░▒██░▄▄▄░░ ▓██▄   ▓███▄░ 
+"   ░▓█ ░██ ░▓█  ██▓  ▒   ██▒▓██ █▄ 
+"   ░▓█▒░██▓░▒▓███▀▒▒██████▒▒▒██▒ █▄
+"    ▒ ░░▒░▒ ░▒   ▒ ▒ ▒▓▒ ▒ ░▒ ▒▒ ▓▒
+"    ▒ ░▒░ ░  ░   ░ ░ ░▒  ░ ░░ ░▒ ▒░
+"    ░  ░░ ░░ ░   ░ ░  ░  ░  ░ ░░ ░ 
+"    ░  ░  ░      ░       ░  ░  ░   
+"
+" 後方非互換
 set nocompatible
+" 行番号
 set number
+" 自動インデント
 set autoindent
+" 保存時の文字コード
 set fileencoding=utf-8
+" 編集時の文字コード
 set encoding=utf8
-set fileformats=unix,dos,mac
+" 想定するファイルフォーマット
+set fileformats=unix,dos
+" 標準のファイルフォーマット
 set fileformat=unix
-set listchars=tab:>-,trail:-,eol:↲,nbsp:%,extends:>,precedes:<
+" 特殊文字の可視化
 set list
+" TAB
+set listchars=tab:›·
+" 行末の空白
+set listchars+=trail:-
+" 行末
+set listchars+=eol:†
+" NBSP
+set listchars+=nbsp:·
+" 折り返し
+set listchars+=extends:❯
+set listchars+=precedes:❮
+
+" タブ表示文字数
 set tabstop=4
+" タブ表示文字数
 set shiftwidth=4
+
+" タブをスペースに変換
+if hostname()=="mbp.local"
+	set expandtab
+endif
+
+" ステータスラインを全てのウィンドウに表示
 set laststatus=2
 set statusline=%<%F\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+" コマンドをステータスラインに表示
 set showcmd
+" マッチングを表示
 set showmatch
+" マッチングにジャンプ
+set matchtime=3
+" 検索結果をハイライト
 set hlsearch
-set ignorecase
+" 検索時に小文字を優先
 set smartcase
+set ignorecase
+" 上から再検索
 set wrapscan
+" 保存せずにバッファ切り替え
+set hidden
 
-
-" php
-" au BufNewFile,BufRead *.php set tags+=$HOME/php.tags
+" PHP用辞書
 au BufNewFile,BufRead *.php set dictionary=~/.vim/dict/php.dict
-highlight Pmenu ctermbg=4
-highlight PmenuSel ctermbg=1
-highlight PmenuSBar ctermbg=4
 
 " NeoBundle
 if has('vim_starting')
@@ -37,21 +79,20 @@ call neobundle#rc(expand('~/.vim/bundle/'))
 
 NeoBundleFetch 'Shougo/neobundle.vim'
 NeoBundle 'altercation/vim-colors-solarized'
+NeoBundle "itchyny/lightline.vim"
 NeoBundle 'Shougo/vimshell'
-NeoBundle 'scrooloose/syntastic'
-NeoBundle 'surround.vim'
-NeoBundle 'mattn/emmet-vim'
-NeoBundle 'Shougo/neocomplete.vim'
-NeoBundle 'jdonaldson/vaxe'
-NeoBundle 'tpope/vim-fugitive'
 NeoBundle 'Shougo/context_filetype.vim'
+NeoBundle 'tpope/vim-fugitive'
+NeoBundle 'mattn/emmet-vim'
+NeoBundle 'scrooloose/syntastic'
+NeoBundle 'shawncplus/phpcomplete.vim'
+NeoBundle 'surround.vim'
+NeoBundle 'jdonaldson/vaxe'
 NeoBundle 'kana/vim-textobj-user'
 NeoBundle 'osyo-manga/vim-precious'
 NeoBundle 'majutsushi/tagbar'
 
-"your other plugins
-"NeoBundleCheck
-
+" ファイルに応じてインデント方式を変える
 filetype plugin indent on
 
 " matchit
@@ -68,32 +109,77 @@ map ; :
 
 " Memo Launcher
 command Memo edit ~/.memo.markdown
+" Sudo write
 command Suw w !sudo tee > /dev/null %
 
 " neocomplete
-let g:neocomplete#enable_at_startup = 1
-let g:neocomplete#enable_smart_case = 1
-let g:neocomplete#sources#syntax#min_keyword_length = 2 
-let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+" if_luaが有効ならneocompleteを使う
+NeoBundle has('lua') ? 'Shougo/neocomplete' : 'Shougo/neocomplcache'
 
-inoremap <expr><C-g>	neocomplete#undo_completion()
-inoremap <expr><C-l>	neocomplete#complete_common_string()
+if neobundle#is_installed('neocomplete')
+    " neocomplete用設定
+    let g:neocomplete#enable_at_startup = 1
+    let g:neocomplete#enable_ignore_case = 1
+    let g:neocomplete#enable_smart_case = 1
+    if !exists('g:neocomplete#keyword_patterns')
+        let g:neocomplete#keyword_patterns = {}
+    endif
+    let g:neocomplete#keyword_patterns._ = '\h\w*'
+	let g:neocomplete#sources#syntax#min_keyword_length = 1
+	let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+	let g:neocomplete#sources={'_': ['vim','omni','file/include']}
+	" AutoComplPop like behavior.
+	" let g:neocomplete#enable_auto_select = 1
+	" inoremap <expr><C-g>	neocomplete#undo_completion()
+	" inoremap <expr><C-l>	neocomplete#complete_common_string()
+	if !exists('g:neocomplete#sources#omni#input_patterns')
+		let g:neocomplete#sources#omni#input_patterns = {}
+	endif
+	let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+	" Haxe
+	let g:neocomplete#sources#omni#input_patterns.haxe = '\v([\]''"\)]|\w|(^\s*))(\.|\()'
+	" 改行で補完候補を非表示
+	inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+	function s:my_cr_function()
+		return neocomplete#close_popup() . "\<CR>"
+	endfunction
+	" BSで補完候補を非表示
+	inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+	" inoremap <expr><C-y>  neocomplete#close_popup()
+	" inoremap <expr><C-e>  neocomplete#cancel_popup()
 
-inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-function s:my_cr_function()
-	return neocomplete#close_popup() . "\<CR>"
-endfunction
+elseif neobundle#is_installed('neocomplcache')
+    " neocomplcache用設定
+    let g:neocomplcache_enable_at_startup = 1
+    let g:neocomplcache_enable_ignore_case = 1
+    let g:neocomplcache_enable_smart_case = 1
+    if !exists('g:neocomplcache_keyword_patterns')
+        let g:neocomplcache_keyword_patterns = {}
+    endif
+    let g:neocomplcache_keyword_patterns._ = '\h\w*'
+    let g:neocomplcache_enable_camel_case_completion = 1
+    let g:neocomplcache_enable_underbar_completion = 1
+endif
 
+" Tabで補完
+inoremap <expr><TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<S-TAB>"
 inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><C-y>  neocomplete#close_popup()
-inoremap <expr><C-e>  neocomplete#cancel_popup()
+
+" 補完時にPreviewウィンドウを表示しない
+set completeopt=menuone
+
+" オムニ補完を設定
+autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
 autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
 autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+" phpcomplete
+let g:phpcomplete_complete_for_unknown_classes = 1
+let g:phpcomplete_search_tags_for_variables = 1
 
 " viminfo
 set viminfo='100,<50,s10,h,%
@@ -103,13 +189,8 @@ set backup
 set backupdir=$HOME/.vim/backup
 let $directory = $bacupdir
 
-" |cw
+" grep時に|cw
 autocmd QuickFixCmdPost *grep* cwindow
-
-" colorscheme
-syntax on
-set background=dark
-colorscheme solarized
 
 " Vaxe
 " http://qiita.com/hatchinee/items/adb0b447bd1118ceb1eb
@@ -139,17 +220,26 @@ endfunction
 autocmd MyAutoCmd FileType haxe call s:init_vaxe_keymap()
 autocmd MyAutoCmd FileType hxml call s:init_vaxe_keymap()
 autocmd MyAutoCmd FileType nmml.xml call s:init_vaxe_keymap()
-" 以下はNeocomplete用
-if !exists('g:neocomplete#sources#omni#input_patterns')
-	let g:neocomplete#sources#omni#input_patterns = {}
-endif
-let g:neocomplete#sources#omni#input_patterns.haxe = '\v([\]''"\)]|\w|(^\s*))(\.|\()'
+
 
 " ActionScript Syntax
 au BufNewFile,BufRead *.as set tags+=$HOME/actionscript.tags
 au BufNewFile,BufRead *.as set ft=actionscript
 
-if has('multi_byte_ime') || has('xim') 
+if has('multi_byte_ime') || has('xim')
 	highlight Cursor guifg=NONE guibg=White
 	highlight CursorIM guifg=NONE guibg=DarkRed
 endif
+
+" colorscheme
+syntax on
+set background=dark
+colorscheme solarized
+highlight NonText ctermfg=green
+highlight SpecialKey ctermfg=green
+"your other plugins
+NeoBundleCheck
+
+highlight Pmenu ctermbg=magenta ctermfg=white
+highlight PmenuSel ctermbg=white ctermfg=magenta
+highlight PmenuSBar ctermbg=magenta ctermfg=white
